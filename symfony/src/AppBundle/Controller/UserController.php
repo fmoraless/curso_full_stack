@@ -10,154 +10,159 @@ use BackendBundle\Entity\User;
 
 class UserController extends Controller {
 
-    public function newAction(Request $request) {
-        $helpers = $this->get("app.helpers");
+	public function newAction(Request $request) {
+		$helpers = $this->get("app.helpers");
 
-        $json = $request->get("json", null);
-        $params = json_decode($json);
-        $data = array(
-            "status" => "error",
-            "code" => 400,
-            "msg" => "User not created"
-        );
+		$json = $request->get("json", null);
+		$params = json_decode($json);
 
-        if ($json != null) {
-            $createdAt = new \Datetime("now");
-            $image = null;
-            $role = "user";
+		$data = array(
+			"status" => "error",
+			"code" => 400,
+			"msg" => "User not created"
+		);
 
-            $email = (isset($params->email)) ? $params->email : null;
-            $name = (isset($params->name) && ctype_alpha($params->name)) ? $params->name : null;
-            $surname = (isset($params->surname) && ctype_alpha($params->surname)) ? $params->surname : null;
-            $password = (isset($params->password)) ? $params->password : null;
+		if ($json != null) {
+			$createdAt = new \Datetime("now");
+			$image = null;
+			$role = "user";
 
-            $emailConstraint = new Assert\Email();
-            $emailConstraint->message = "This email is not valid";
-            $validate_email = $this->get("validator")->validate($email, $emailConstraint);
+			$email = (isset($params->email)) ? $params->email : null;
+			$name = (isset($params->name) && ctype_alpha($params->name)) ? $params->name : null;
+			$surname = (isset($params->surname) && ctype_alpha($params->surname)) ? $params->surname : null;
+			$password = (isset($params->password)) ? $params->password : null;
 
-            if ($email != null && count($validate_email) == 0 &&
-                    $password != null && $name != null && $surname != null
-            ) {
-                $user = new User();
-                $user->setCreatedAt($createdAt);
-                $user->setImage($image);
-                $user->setRole($role);
-                $user->setEmail($email);
-                $user->setName($name);
-                $user->setSurname($surname);
+			$emailContraint = new Assert\Email();
+			$emailContraint->message = "This email is not valid !!";
+			$validate_email = $this->get("validator")->validate($email, $emailContraint);
 
-                //Cifrar la Password
-                $pwd = hash('sha256', $password);
-                $user->setPassword($pwd);
+			if ($email != null && count($validate_email) == 0 &&
+					$password != null && $name != null && $surname != null
+			) {
+				$user = new User();
+				$user->setCreatedAt($createdAt);
+				$user->setImage($image);
+				$user->setRole($role);
+				$user->setEmail($email);
+				$user->setName($name);
+				$user->setSurname($surname);
 
-                $em = $this->getDoctrine()->getManager();
-                $isset_user = $em->getRepository("BackendBundle:User")->findBy(
-                        array(
-                            "email" => $email
-                ));
-                if (count($isset_user) == 0) {
-                    $em->persist($user);
-                    $em->flush();
+				//Cifrar la password
+				$pwd = hash('sha256', $password);
+				$user->setPassword($pwd);
 
-                    $data["status"] = 'success';
-                    $data["code"] = 200;
-                    $data["msg"] = 'New user created !!';
-                } else {
-                    $data = array(
-                        "status" => "error",
-                        "code" => 400,
-                        "msg" => "User not created, duplicated"
-                    );
-                }
-            }
-        }
-        return $helpers->json($data);
-    }
+				$em = $this->getDoctrine()->getManager();
+				$isset_user = $em->getRepository("BackendBundle:User")->findBy(
+						array(
+							"email" => $email
+				));
 
-    public function editAction(Request $request) {
-        $helpers = $this->get("app.helpers");
+				if (count($isset_user) == 0) {
+					$em->persist($user);
+					$em->flush();
 
-        $hash = $request->get("authorization", null);
-        $authCheck = $helpers->authCheck($hash);
+					$data["status"] = 'success';
+					$data["code"] = 200;
+					$data["msg"] = 'New user created !!';
+				} else {
+					$data = array(
+						"status" => "error",
+						"code" => 400,
+						"msg" => "User not created, duplicated!!"
+					);
+				}
+			}
+		}
 
-        if ($authCheck == true) {
+		return $helpers->json($data);
+	}
 
-            $identity = $helpers->authCheck($hash, true);
-            
-            $em = $this->getDoctrine()->getManager();
-            $user = $em->getRepository("BackendBundle:User")->findOneBy(array(
-                    "id" => $identity->sub
-            ));
-            
-            $json = $request->get("json", null);
-            $params = json_decode($json);
-            $data = array(
-                "status" => "error",
-                "code" => 400,
-                "msg" => "User not updated"
-            );
+	public function editAction(Request $request) {
+		$helpers = $this->get("app.helpers");
 
-            if ($json != null) {
-                $createdAt = new \Datetime("now");
-                $image = null;
-                $role = "user";
+		$hash = $request->get("authorization", null);
+		$authCheck = $helpers->authCheck($hash);
 
-                $email = (isset($params->email)) ? $params->email : null;
-                $name = (isset($params->name) && ctype_alpha($params->name)) ? $params->name : null;
-                $surname = (isset($params->surname) && ctype_alpha($params->surname)) ? $params->surname : null;
-                $password = (isset($params->password)) ? $params->password : null;
+		if ($authCheck == true) {
 
-                $emailConstraint = new Assert\Email();
-                $emailConstraint->message = "This email is not valid";
-                $validate_email = $this->get("validator")->validate($email, $emailConstraint);
+			$identity = $helpers->authCheck($hash, true);
+			
+			$em = $this->getDoctrine()->getManager();
+			$user = $em->getRepository("BackendBundle:User")->findOneBy(array(
+					"id" => $identity->sub
+			));
+			
+			$json = $request->get("json", null);
+			$params = json_decode($json);
 
-                if ($email != null && count($validate_email) == 0 &&
-                        $name != null && $surname != null
-                ) {
-                    $user->setCreatedAt($createdAt);
-                    $user->setImage($image);
-                    $user->setRole($role);
-                    $user->setEmail($email);
-                    $user->setName($name);
-                    $user->setSurname($surname);
-                    
-                    if($password != null){
-                        //Cifrar la Password
-                        $pwd = hash('sha256', $password);
-                        $user->setPassword($pwd);
-                    }
+			$data = array(
+				"status" => "error",
+				"code" => 400,
+				"msg" => "User not updated"
+			);
 
-                    $em = $this->getDoctrine()->getManager();
-                    $isset_user = $em->getRepository("BackendBundle:User")->findBy(
-                            array(
-                                "email" => $email
-                    ));
-                    if (count($isset_user) == 0 || $identity->email == $email) {
-                        $em->persist($user);
-                        $em->flush();
+			if ($json != null) {
+				$createdAt = new \Datetime("now");
+				$image = null;
+				$role = "user";
 
-                        $data["status"] = 'success';
-                        $data["code"] = 200;
-                        $data["msg"] = 'User Updated !!';
-                    }else {
-                        $data = array(
-                            "status" => "error",
-                            "code" => 400,
-                            "msg" => "User not updated, duplicated"
-                        );
-                    }
-                }
-            } else {
-                $data = array(
-                    "status" => "error",
-                    "code" => 400,
-                    "msg" => "Authorization not valid"
-                );
-            }
-        }          
-        return $helpers->json($data);
-    } //Cierre de editAction
-}
+				$email = (isset($params->email)) ? $params->email : null;
+				$name = (isset($params->name) && ctype_alpha($params->name)) ? $params->name : null;
+				$surname = (isset($params->surname) && ctype_alpha($params->surname)) ? $params->surname : null;
+				$password = (isset($params->password)) ? $params->password : null;
+
+				$emailContraint = new Assert\Email();
+				$emailContraint->message = "This email is not valid !!";
+				$validate_email = $this->get("validator")->validate($email, $emailContraint);
+
+				if ($email != null && count($validate_email) == 0 &&
+					 $name != null && $surname != null
+				) {
+					$user->setCreatedAt($createdAt);
+					//$user->setImage($image);
+					$user->setRole($role);
+					$user->setEmail($email);
+					$user->setName($name);
+					$user->setSurname($surname);
+
+					if($password != null && !empty($password)){
+						//Cifrar la password
+						$pwd = hash('sha256', $password);
+						$user->setPassword($pwd);
+					}
+					
+					$em = $this->getDoctrine()->getManager();
+					$isset_user = $em->getRepository("BackendBundle:User")->findBy(
+							array(
+								"email" => $email
+					));
+
+					if (count($isset_user) == 0 || $identity->email == $email) {
+						$em->persist($user);
+						$em->flush();
+
+						$data["status"] = 'success';
+						$data["code"] = 200;
+						$data["msg"] = 'User updated !!';
+					} else {
+						$data = array(
+							"status" => "error",
+							"code" => 400,
+							"msg" => "User not updated, duplicated!!"
+						);
+					}
+				}
+			} else {
+				$data = array(
+					"status" => "error",
+					"code" => 400,
+					"msg" => "Authorization not valid"
+				);
+			}
+		}
+
+		return $helpers->json($data);
+	}
 //    public function uploadImageAction(Request $request) {
 //        $helpers = $this->get("app.helpers");
 //
@@ -204,3 +209,4 @@ class UserController extends Controller {
 //        }
 //        return $helpers->json($data);
 //    }
+}
