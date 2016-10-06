@@ -18,7 +18,7 @@ class VideoController extends Controller {
 		$authCheck = $helpers->authCheck($hash);
 
 		if ($authCheck == true) {
-            $identity = $helpers->authCheck("$hash, true");
+            $identity = $helpers->authCheck($hash, true);
             
             $json = $request->get("json", null);
             
@@ -35,21 +35,21 @@ class VideoController extends Controller {
                 $title = (isset($params->title)) ? $params->title : null;
                 $description = (isset($params->description)) ? $params->description : null;
                 $status = (isset($params->status)) ? $params->status : null;
+               
                 
-                if($user_id != null && title != null){
+                if($user_id != null && $title != null){
                     $em = $this->getDoctrine()->getManager();
                     
-                    $user = $em->getRepository("BackendBundle:User")->findOneBy(
+                    $video = $em->getRepository("BackendBundle:Video")->findOneBy(
                             array(
-                               "id" => $user_id 
+                               "id" => $video_id 
                     ));
                     
-                    $video = new Video();
-                    $video->setUser($user);
+                    
                     $video->setTitle($title);
                     $video->setDescription($description);
                     $video->setStatus($status);
-                    $video->setCreatedAt($createdAt);
+                    
                     $video->setUpdatedAt($updatedAt);
                     
                     $em->persist($video);
@@ -67,7 +67,7 @@ class VideoController extends Controller {
                                 "code" => 200,
                                 "data" => $video
                             );  
-                }else{
+                    }else{
                     $data = array(
                         "status" => "error",
                         "code" => 400,
@@ -79,6 +79,88 @@ class VideoController extends Controller {
                         "status" => "error",
                         "code" => 400,
                         "data" => "Video not created, params failed"
+                    );
+            }
+        }else{
+            $data = array(
+					"status" => "error",
+					"code" => 400,
+					"msg" => "Authorization not valid"
+			);
+        }
+        
+        return $helpers->json($data);
+    }
+    
+        
+    public function editAction(Request $request, $id = null){
+        $helpers = $this->get("app.helpers");
+
+		$hash = $request->get("authorization", null);
+		$authCheck = $helpers->authCheck($hash);
+
+		if ($authCheck == true) {
+            $identity = $helpers->authCheck($hash, true);
+            
+            $video_id = $id;
+            $json = $request->get("json", null);
+            
+            if($json != null){
+                $params = json_decode($json);
+
+                $createdAt = new \Datetime('now');
+                $updatedAt = new \Datetime('now');
+                $imagen = null;
+                $video_path = null;
+                
+                
+                $user_id = ($identity->sub != null) ? $identity->sub : null;
+                $title = (isset($params->title)) ? $params->title : null;
+                $description = (isset($params->description)) ? $params->description : null;
+                $status = (isset($params->status)) ? $params->status : null;
+                
+                if($user_id != null && $title != null){
+                    $em = $this->getDoctrine()->getManager();
+                    
+                    $video = $em->getRepository("BackendBundle:Video")->findOneBy(
+                            array(
+                               "id"  => $video_id
+                    ));
+               
+                    if (isset($identity->sub) && $identity->sub == $video->getUser()->getId()) {                   
+                    $video->setTitle($title);
+                    $video->setDescription($description);
+                    $video->setStatus($status);
+                    $video->setUpdatedAt($updatedAt);
+                    
+                    $em->persist($video);
+                    $em->flush();
+                    
+                    
+                            $data = array(
+                                "status" => "success",
+                                "code" => 200,
+                                "msg" => "Video updated Success"
+                            );  
+                }else{
+                    $data = array(
+                                "status" => "success",
+                                "code" => 400,
+                                "msg" => "Video updated ERROR, You are not owner"
+                            );  
+                }
+                }else{
+                    $data = array(
+                        "status" => "error",
+                        "code" => 400,
+                        "data" => "Video updated ERROR"
+                    );
+                }
+            }else{
+                $data = array(
+                        "status" => "error",
+                        "code" => 400,
+                        "data" => "Video not updated, params failed"
                     );
             }
         }else{

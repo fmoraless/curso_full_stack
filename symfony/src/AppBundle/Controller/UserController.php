@@ -77,7 +77,7 @@ class UserController extends Controller {
 		return $helpers->json($data);
 	}
 
-	public function editAction(Request $request) {
+	public function editAction(Request $request, $id = null) {
 		$helpers = $this->get("app.helpers");
 
 		$hash = $request->get("authorization", null);
