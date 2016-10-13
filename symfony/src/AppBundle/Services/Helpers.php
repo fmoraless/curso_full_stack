@@ -43,8 +43,8 @@ class Helpers {
 		return $response;
 	}
 	
-//	public function hola(){
-//		return "Hola desde el servicio";
-//	}
+	public function hola(){
+		return "Hola desde el servicio";
+	}
 	
 }

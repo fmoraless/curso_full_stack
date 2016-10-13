@@ -72,9 +72,11 @@ class DefaultController extends Controller
     public function pruebasAction(Request $request)
     {
         $helpers = $this->get("app.helpers");
+        //$jwt_auth = $this->get("app.jwt_auth");
         
         $hash = $request->get("authorization", null);
         $check = $helpers->authCheck($hash, true);
+        //$check = $jwt_auth->checkTocken($hash);
         
         var_dump($check);
         die();
