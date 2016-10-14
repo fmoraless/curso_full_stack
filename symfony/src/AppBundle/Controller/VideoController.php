@@ -307,5 +307,34 @@ class VideoController extends Controller {
         return $helpers->json($data);
         
     }
+    
+    public function videoAction(Request $request, $id = null){
+        $helpers = $this->get("app.helpers");
+        $em = $this->getDoctrine()->getManager();
+        
+        $video = $em->getRepository("BackendBundle:Video")->findOneBy(array(
+            "id" => $id
+        ));
+        
+        $data = array(
+            "status" => "error",
+            "code" => 400,
+            "msg" => "Video Doesn't exists"
+        );
+        if($video){
+            $data = array();
+            $data["status"] ='success';
+            $data["code"] = 200;
+            $data["data"] = $video;
+        }else{
+            $data = array(
+              "status" => "error",
+              "code" => 400,
+              "msg" => "Video doesn't exist"
+            );
+        }
+        
+        return $helpers->json($data);
+    }
             
 }
