@@ -1,0 +1,5 @@
+## YAML Template.
+comment_new:
+    path:    /new
+    defaults: { _controller: "AppBundle:Comment:new"}
+    methods: POST
