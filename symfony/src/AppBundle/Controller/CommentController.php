@@ -76,4 +76,57 @@ class CommentController extends Controller {
         }
         return $helpers->json($data);
     }
+    
+    public function deleteAction(Request $request, $id = null){
+        $helpers = $this->get("app.helpers");
+        
+        $hash = $request->get("authorization", null);
+        $authCheck = $helpers->authCheck($hash);
+        
+        if($authCheck){
+            $identity = $helpers->authCheck($hash, TRUE);
+            
+            $user_id = ($identity->sub != null) ? $identity->sub : null;
+            
+            $em = $this->getDoctrine()->getManager();
+            $comment = $em->getRepository("BackendBundle:Comment")->findOneBy(array(
+                "id" => $id
+            ));
+            if(is_object($comment) && $user_id != null){
+                if(isset($identity->sub) && 
+                   ($identity->sub == $comment->getUser()->getId() ||
+                    $identity->sub == $comment->getVideo()->getUser()->getId()
+                        
+                        )){
+                        $em->remove($comment);
+                        $em->flush();
+                        
+                        $data = array(
+                            "status" => "success",
+                            "code"   => 200,
+                            "msg"    => "Comment deleted success"
+                        );
+                }else{
+                    $data = array(
+                    "status" => "error",
+                    "code"   => 400,
+                    "msg"    => "Comment doesn´t deletd"
+                );
+                }
+            }else{
+                $data = array(
+                    "status" => "error",
+                    "code"   => 400,
+                    "msg"    => "Comment doesn´t deletd"
+                );
+            }
+        }else{
+            $data = array(
+                "status" => "error",
+                "code"   => 400,
+                "msg"    => "Authentication not valid"
+            );
+        }
+        return $helpers->json($data);
+    }
 }
