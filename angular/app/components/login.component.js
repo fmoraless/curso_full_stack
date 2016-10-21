@@ -14,15 +14,15 @@ var LoginComponent = (function () {
         this.titulo = "Identificate";
     }
     LoginComponent.prototype.ngOnInit = function () {
-        this.user =
-            "email";
-        "",
-            "password";
-        "",
-            "gethash";
-        "false";
+        this.user = {
+            "email": "",
+            "password": "",
+            "gethash": "false"
+        };
     };
-    ;
+    LoginComponent.prototype.OnSubmit = function () {
+        console.log(this.user);
+    };
     LoginComponent = __decorate([
         core_1.Component({
             selector: 'login',

@@ -12,7 +12,8 @@
 		</p>
 		<p>
 			<label>Contraseña:</label>
-			<input type="password" class="form-control" required />
+			<input type="password" class="form-control" #password="ngForm" ngControl="password" [(ngModel)]="user.password" required />
+			<span *ngIf="!password.valid">La contraseña es obligatoria</span>
 		</p>
 		<input type="submit" value="Entrar" class="btn btn-primary" />
 	</form>
